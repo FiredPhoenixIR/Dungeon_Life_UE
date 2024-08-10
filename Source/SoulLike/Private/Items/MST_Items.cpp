@@ -3,7 +3,7 @@
 
 #include "Items/MST_Items.h"
 #include "DrawDebugHelpers.h"
-#include "SoulLike/SoulLike.h"
+#include "SoulLike/DebugMacros.h"
 
 
 
@@ -22,8 +22,12 @@ void AMST_Items::BeginPlay()
 	if (GEngine) {
 		GEngine->AddOnScreenDebugMessage(1, 60.f, FColor::Yellow, FString(" Item Message "));
 	}
+	
+	FVector Location = GetActorLocation();
+	FVector Forward = GetActorForwardVector();
 
-	DebugSphere(GetActorLocation());
+	DebugSphere(Location);
+	DebugVector(Location, Location + Forward * 100);
 }
 
 void AMST_Items::Tick(float DeltaTime)
