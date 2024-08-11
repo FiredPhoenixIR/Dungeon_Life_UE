@@ -25,7 +25,7 @@ void AMST_Items::BeginPlay()
 	
 	//FVector Location = GetActorLocation();
 	//FVector Forward = GetActorForwardVector();
-
+	SetActorLocation(FVector(0.f, 0.f, 120.f));
 	//DebugSphere(Location);
 	//DebugVector(Location, Location + Forward * 100);
 }
