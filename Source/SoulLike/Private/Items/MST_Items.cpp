@@ -23,17 +23,18 @@ void AMST_Items::BeginPlay()
 		GEngine->AddOnScreenDebugMessage(1, 60.f, FColor::Yellow, FString(" Item Message "));
 	}
 	
-	FVector Location = GetActorLocation();
-	FVector Forward = GetActorForwardVector();
+	//FVector Location = GetActorLocation();
+	//FVector Forward = GetActorForwardVector();
 
-	DebugSphere(Location);
-	DebugVector(Location, Location + Forward * 100);
+	//DebugSphere(Location);
+	//DebugVector(Location, Location + Forward * 100);
 }
 
-void AMST_Items::Tick(float DeltaTime)
+void AMST_Items::Tick(float DeltaTime) // Seconds/Frame
 {
 	Super::Tick(DeltaTime);
 	UE_LOG(LogTemp, Warning, TEXT("DeltaTime : %f"), DeltaTime);
+
 	if (GEngine) {
 		FString Name = GetName();
 		//FString Message = FString::Printf(TEXT("Delta Time : %f"), DeltaTime);
@@ -41,5 +42,9 @@ void AMST_Items::Tick(float DeltaTime)
 		// * overloaded for fstring var , provides c style string ( an array of char)
 		GEngine->AddOnScreenDebugMessage(1, 1.f, FColor::Yellow, Message);
 	}
+	AddActorWorldOffset(FVector(20.f * DeltaTime, 0.f, 0.f));
+	AddActorWorldRotation(FRotator(5.0f * DeltaTime, 5.f * DeltaTime, 5.f * DeltaTime)); //Gimble Lock
+	DebugSphere_SingleFrame(GetActorLocation());
+	DebugVector_SingleFrame(GetActorLocation(), GetActorLocation() + GetActorForwardVector() * 100);
 }
 
