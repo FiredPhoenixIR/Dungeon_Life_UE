@@ -42,8 +42,30 @@ void AMST_Items::Tick(float DeltaTime) // Seconds/Frame
 		// * overloaded for fstring var , provides c style string ( an array of char)
 		GEngine->AddOnScreenDebugMessage(1, 1.f, FColor::Yellow, Message);
 	}
-	AddActorWorldOffset(FVector(20.f * DeltaTime, 0.f, 0.f));
-	AddActorWorldRotation(FRotator(5.0f * DeltaTime, 5.f * DeltaTime, 5.f * DeltaTime)); //Gimble Lock
+	float Time = GetWorld()->GetTimeSeconds();
+	SetActorLocation(FVector(50.f + 10* Time, 0.f, 300.f + 50.f * sin(Time)));
+	//AddActorWorldRotation(FRotator(5.0f * DeltaTime, 5.f * DeltaTime, 5.f * DeltaTime)); // Testing Gimble Lock
+	//AddActorWorldRotation(FQuat(FRotator(5.0f * DeltaTime, 5.f * DeltaTime, 5.f * DeltaTime)));
+
+
+	// Separate rotation values
+	float PitchRotation = 15.0f * DeltaTime;
+	float YawRotation = 15.0f * DeltaTime;
+	float RollRotation = 15.0f * DeltaTime;
+
+	// Get the current rotation as a quaternion
+	FQuat CurrentRotation = GetActorQuat();
+
+	// Create individual quaternions for each axis
+	FQuat QuatPitch = FQuat(FRotator(PitchRotation, 0.f, 0.f));
+	FQuat QuatYaw = FQuat(FRotator(0.f, YawRotation, 0.f));
+	FQuat QuatRoll = FQuat(FRotator(0.f, 0.f, RollRotation));
+
+	// Combine the rotations
+	FQuat NewRotation = QuatPitch * QuatYaw * QuatRoll;
+
+	// Apply the combined rotation
+	SetActorRotation(CurrentRotation * NewRotation);
 	DebugSphere_SingleFrame(GetActorLocation());
 	DebugVector_SingleFrame(GetActorLocation(), GetActorLocation() + GetActorForwardVector() * 100);
 }
