@@ -48,6 +48,7 @@ void AMST_Items::Tick(float DeltaTime) // Seconds/Frame
 	//AddActorWorldRotation(FQuat(FRotator(5.0f * DeltaTime, 5.f * DeltaTime, 5.f * DeltaTime)));
 
 
+
 	// Separate rotation values
 	float PitchRotation = 15.0f * DeltaTime;
 	float YawRotation = 15.0f * DeltaTime;
@@ -69,4 +70,3 @@ void AMST_Items::Tick(float DeltaTime) // Seconds/Frame
 	DebugSphere_SingleFrame(GetActorLocation());
 	DebugVector_SingleFrame(GetActorLocation(), GetActorLocation() + GetActorForwardVector() * 100);
 }
-
