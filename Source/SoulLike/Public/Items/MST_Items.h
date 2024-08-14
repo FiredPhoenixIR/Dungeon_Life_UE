@@ -17,6 +17,8 @@ public:
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+	template<typename T>
+	T Avg(T Numb1, T Numb2);
 
 protected:
 
@@ -26,3 +28,9 @@ private:
 	UPROPERTY(meta = (AllowPrivateAccess = "true"))
 	float amplitude;
 };
+
+template<typename T>
+inline T AMST_Items::Avg(T Numb1, T Numb2)
+{
+	return (Numb1 + Numb2) / 2;
+}
