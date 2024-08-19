@@ -22,7 +22,7 @@ public:
 	float Amplitude = 0.25f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sine Parameters")
-	float TimeConstant = 5.f;
+	float TimeConstant = 5.0f;
 
 	UFUNCTION(BlueprintPure)
 	float TransformedSin() const;
@@ -42,7 +42,7 @@ protected:
 
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	float RunningTime;
+	float RunningTime = 0.0f;
 };
 
 template<typename T>
