@@ -25,10 +25,10 @@ public:
 	float TimeConstant = 5.f;
 
 	UFUNCTION(BlueprintPure)
-	float TransformedSin();
+	float TransformedSin() const;
 
 	UFUNCTION(BlueprintPure)
-	float TransformedCos();
+	float TransformedCos() const;
 
 	template<typename T>
 	T Avg(T First, T Second);
