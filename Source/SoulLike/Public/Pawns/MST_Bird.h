@@ -13,13 +13,11 @@ class SOULLIKE_API AMST_Bird : public APawn
 
 public:
 	AMST_Bird();
+	virtual void Tick(float DeltaTime) override;
+
+		// Called to bind functionality to input
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 protected:
 	virtual void BeginPlay() override;
-
-public:	
-	virtual void Tick(float DeltaTime) override;
-
-	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 };
