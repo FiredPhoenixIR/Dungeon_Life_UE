@@ -6,6 +6,8 @@
 #include "GameFramework/Pawn.h"
 #include "MST_Bird.generated.h"
 
+class UCapsuleComponent;
+
 UCLASS()
 class SOULLIKE_API AMST_Bird : public APawn
 {
@@ -20,4 +22,8 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+
+private:
+	UPROPERTY(VisibleAnywhere)
+	UCapsuleComponent* Capsule;
 };

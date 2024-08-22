@@ -2,11 +2,17 @@
 
 
 #include "Pawns/MST_Bird.h"
-
+#include "Components/CapsuleComponent.h" 
+//As we used forward declare and dont need size and all info of componenet
+//Prevents code bloat and circular dependencies and reduce compile time
+ 
 // Sets default values
 AMST_Bird::AMST_Bird()
 {
 	PrimaryActorTick.bCanEverTick = true;
+	Capsule = CreateDefaultSubobject<UCapsuleComponent>(TEXT("CapsuleComponent"));
+	RootComponent = Capsule;
+	//SetRootComponent(Capsule);
 }
 
 void AMST_Bird::BeginPlay()
