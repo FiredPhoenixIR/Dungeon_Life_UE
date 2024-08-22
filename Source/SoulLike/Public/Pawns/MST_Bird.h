@@ -7,6 +7,7 @@
 #include "MST_Bird.generated.h"
 
 class UCapsuleComponent;
+//class USkeletalMeshComponent; already part of pawn and actor
 
 UCLASS()
 class SOULLIKE_API AMST_Bird : public APawn
@@ -22,8 +23,10 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
-
+	void MoveForward(float Value);
 private:
 	UPROPERTY(VisibleAnywhere)
 	UCapsuleComponent* Capsule;
+	UPROPERTY(VisibleAnywhere)
+	USkeletalMeshComponent* BirdMesh;
 };
