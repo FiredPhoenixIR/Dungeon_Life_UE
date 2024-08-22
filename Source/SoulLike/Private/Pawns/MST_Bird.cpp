@@ -3,6 +3,8 @@
 
 #include "Pawns/MST_Bird.h"
 #include "Components/CapsuleComponent.h" 
+#include "GameFramework/SpringArmComponent.h"
+#include "Camera/CameraComponent.h"
 //Used forward declare in our header and used componenet header file here 
 //Where we actually need the size and info to create an object of it
 //Prevents code bloat and circular dependencies and reduce compile time
@@ -16,6 +18,13 @@ AMST_Bird::AMST_Bird()
 	BirdMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("BirdMesh"));
 	BirdMesh->SetupAttachment(RootComponent);
 	//SetRootComponent(Capsule);
+	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
+	SpringArm->SetupAttachment(RootComponent);
+	SpringArm->TargetArmLength = 300.f;
+	ViewCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("ViewCamera"));
+	ViewCamera->SetupAttachment(SpringArm);
+
+	AutoPossessPlayer = EAutoReceiveInput::Player0;
 }
 
 void AMST_Bird::BeginPlay()

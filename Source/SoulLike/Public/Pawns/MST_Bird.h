@@ -8,6 +8,8 @@
 
 class UCapsuleComponent;
 //class USkeletalMeshComponent; already part of pawn and actor
+class USpringArmComponent;
+class UCameraComponent;
 
 UCLASS()
 class SOULLIKE_API AMST_Bird : public APawn
@@ -29,4 +31,8 @@ private:
 	UCapsuleComponent* Capsule;
 	UPROPERTY(VisibleAnywhere)
 	USkeletalMeshComponent* BirdMesh;
+	UPROPERTY(VisibleAnywhere)
+	USpringArmComponent* SpringArm;
+	UPROPERTY(VisibleAnywhere)
+	UCameraComponent* ViewCamera;
 };
