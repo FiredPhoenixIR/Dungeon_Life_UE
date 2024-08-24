@@ -31,10 +31,13 @@ protected:
 private:
 	UPROPERTY(VisibleAnywhere)
 	UCapsuleComponent* Capsule;
+
 	UPROPERTY(VisibleAnywhere)
 	USkeletalMeshComponent* BirdMesh;
+
 	UPROPERTY(VisibleAnywhere)
 	USpringArmComponent* SpringArm;
+
 	UPROPERTY(VisibleAnywhere)
 	UCameraComponent* ViewCamera;
 };
