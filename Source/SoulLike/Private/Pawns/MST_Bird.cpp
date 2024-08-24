@@ -25,6 +25,9 @@ AMST_Bird::AMST_Bird()
 	ViewCamera->SetupAttachment(SpringArm);
 
 	AutoPossessPlayer = EAutoReceiveInput::Player0;
+	bUseControllerRotationPitch = 1;
+	bUseControllerRotationRoll = 1;
+	bUseControllerRotationYaw = 1;
 }
 
 void AMST_Bird::BeginPlay()
@@ -34,11 +37,21 @@ void AMST_Bird::BeginPlay()
 
 void AMST_Bird::MoveForward(float Value)
 { // called everyframe like tick as its bound
-	UE_LOG(LogTemp, Warning, TEXT("Value : %f "), Value);
+	//UE_LOG(LogTemp, Warning, TEXT("Value : %f "), Value);
 	if (Controller && (Value != 0.f)) {
 		FVector LForward = GetActorForwardVector();
 		AddMovementInput(LForward, Value);
 	}
+}
+
+void AMST_Bird::Turn(float Value)
+{
+	AddControllerYawInput(Value);
+}
+
+void AMST_Bird::LookUp(float Value)
+{
+	AddControllerPitchInput(Value);
 }
 
 void AMST_Bird::Tick(float DeltaTime)
@@ -51,5 +64,7 @@ void AMST_Bird::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 	PlayerInputComponent->BindAxis(FName("MoveForward"), this, &AMST_Bird::MoveForward); // Bind To CallBackFuncction
+	PlayerInputComponent->BindAxis(FName("Turn"), this, &AMST_Bird::Turn);
+	PlayerInputComponent->BindAxis(FName("LookUp"), this, &AMST_Bird::LookUp);
 }
 
