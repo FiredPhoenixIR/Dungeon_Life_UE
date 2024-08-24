@@ -8,6 +8,7 @@
 
 class UCameraComponent;
 class USpringArmComponent;
+class UGroomComponent;
 
 
 UCLASS()
@@ -31,4 +32,10 @@ private:
 
 	UPROPERTY(VisibleAnywhere)
 	USpringArmComponent* SpringArm;
+
+	UPROPERTY(VisibleAnywhere, Category = "Groom")
+	UGroomComponent* Hair;
+
+	UPROPERTY(VisibleAnywhere, Category = "Groom")
+	UGroomComponent* EyeBrows;
 };
