@@ -21,5 +21,6 @@ void UMST_EchoAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	Super::NativeUpdateAnimation(DeltaSeconds);
 	if (EchoCharacterMovement) {
 		GroundSpeed = UKismetMathLibrary::VSizeXY(EchoCharacterMovement->Velocity);
+		bSprinting = EchoCharacter->bIsSprinting;
 	}
 }

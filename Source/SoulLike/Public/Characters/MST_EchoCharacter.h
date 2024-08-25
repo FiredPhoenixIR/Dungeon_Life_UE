@@ -6,9 +6,13 @@
 #include "GameFramework/Character.h"
 #include "MST_EchoCharacter.generated.h"
 
+
 class UCameraComponent;
 class USpringArmComponent;
 class UGroomComponent;
+class UInputMappingContext;
+class UInputAction;
+struct FInputActionValue;
 
 
 UCLASS()
@@ -20,12 +24,31 @@ public:
 	AMST_EchoCharacter();
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	bool bIsSprinting;
 protected:
 	virtual void BeginPlay() override;
-	void MoveForward(float Value);
-	void MoveRight(float Value);
-	void Turn(float Value);
-	void LookUp(float Value);
+	UPROPERTY(EditAnywhere, Category = "Input")
+	UInputMappingContext* EchoContext;
+
+	UPROPERTY(EditAnywhere, Category = "Input")
+	UInputAction* MovementAction;
+
+	UPROPERTY(EditAnywhere, Category = "Input")
+	UInputAction* LookingAction;
+
+
+	UPROPERTY(EditAnywhere, Category = "Input")
+	UInputAction* SprintAction;
+
+	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	//bool bIsSprinting;
+
+	void Move(const FInputActionValue& Value);
+	void Look(const FInputActionValue& Value);
+	void Sprint(const FInputActionValue& Value);
+
 private:
 	UPROPERTY(VisibleAnywhere)
 	UCameraComponent* ViewCamera;
@@ -38,4 +61,9 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category = "Groom")
 	UGroomComponent* EyeBrows;
+
+	UPROPERTY(VisibleAnywhere)
+	float WalkSpeed;
+	UPROPERTY(VisibleAnywhere)
+	float SprintSpeed;
 };
