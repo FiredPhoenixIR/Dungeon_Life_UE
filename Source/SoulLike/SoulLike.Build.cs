@@ -16,7 +16,11 @@ public class SoulLike : ModuleRules
 			"HairStrandsCore",
             "Niagara",
 			"PhysicsCore",
-			"NiagaraCore"
+			"NiagaraCore",
+			"GeometryCollectionEngine",
+			"UMG",
+			"AIModule",
+			"EnhancedInput"
 			});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
