@@ -24,3 +24,5 @@ void UMST_EchoAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		bSprinting = EchoCharacter->bIsSprinting;
 	}
 }
+
+

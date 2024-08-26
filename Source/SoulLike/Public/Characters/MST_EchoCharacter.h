@@ -27,6 +27,10 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	bool bIsSprinting;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	bool bIsJumping;
+
 protected:
 	virtual void BeginPlay() override;
 	UPROPERTY(EditAnywhere, Category = "Input")
@@ -38,17 +42,31 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Input")
 	UInputAction* LookingAction;
 
-
 	UPROPERTY(EditAnywhere, Category = "Input")
 	UInputAction* SprintAction;
 
+	UPROPERTY(EditAnywhere, Category = "Input")
+	UInputAction* JumpAction;
+
+	UPROPERTY(EditAnywhere, Category = "Input")
+	UInputAction* AttackAction;
+
+	UPROPERTY(EditAnywhere, Category = "Input")
+	UInputAction* DodgeAction;
+
+	UPROPERTY(EditAnywhere, Category = "Input")
+	UInputAction* EKeyAction;
+
 	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	//bool bIsSprinting;
-
+	virtual void Jump() override;
+	void Attack();
+	void Dodge();
+	void EKeyPressed();
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
 	void Sprint(const FInputActionValue& Value);
-
+	
 private:
 	UPROPERTY(VisibleAnywhere)
 	UCameraComponent* ViewCamera;

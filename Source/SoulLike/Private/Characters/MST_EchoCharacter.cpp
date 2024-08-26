@@ -25,6 +25,7 @@ AMST_EchoCharacter::AMST_EchoCharacter()
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
+
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 400.f, 0.f); // Yaw is rotation against Z
 
@@ -40,6 +41,7 @@ AMST_EchoCharacter::AMST_EchoCharacter()
 	Hair = CreateDefaultSubobject<UGroomComponent>(TEXT("Hair"));
 	Hair->SetupAttachment(GetMesh());
 	Hair->AttachmentName = FString("head");
+
 	EyeBrows = CreateDefaultSubobject<UGroomComponent>(TEXT("EyeBrows"));
 	EyeBrows->SetupAttachment(GetMesh());
 	EyeBrows->AttachmentName = FString("head");
@@ -94,6 +96,57 @@ void AMST_EchoCharacter::Sprint(const FInputActionValue& Value)
 	}
 }
 
+void AMST_EchoCharacter::Jump()
+{
+	Super::Jump();
+	bIsJumping = true;
+}
+
+void AMST_EchoCharacter::Attack()
+{
+	return;
+}
+
+void AMST_EchoCharacter::Dodge()
+{
+	return;
+}
+
+void AMST_EchoCharacter::EKeyPressed()
+{
+	return;
+}
+
+void AMST_EchoCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+}
+
+// Called to bind functionality to input
+void AMST_EchoCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+{
+	Super::SetupPlayerInputComponent(PlayerInputComponent);
+
+	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent)) {
+		//Move & Look
+		EnhancedInputComponent->BindAction(MovementAction, ETriggerEvent::Triggered, this, &AMST_EchoCharacter::Move);
+		EnhancedInputComponent->BindAction(LookingAction, ETriggerEvent::Triggered, this, &AMST_EchoCharacter::Look);
+		// Bind Sprint Actions
+		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Started, this, &AMST_EchoCharacter::Sprint);
+		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &AMST_EchoCharacter::Sprint);
+		//Jump
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AMST_EchoCharacter::Jump);
+		//Attack
+		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Triggered, this, &AMST_EchoCharacter::Attack);
+		//Dodge
+		EnhancedInputComponent->BindAction(DodgeAction, ETriggerEvent::Triggered, this, &AMST_EchoCharacter::Dodge);
+		//Equip Interact
+		EnhancedInputComponent->BindAction(EKeyAction, ETriggerEvent::Triggered, this, &AMST_EchoCharacter::EKeyPressed);
+	}
+	//PlayerInputComponent->BindAxis(FName("MoveForward"), this, &AMST_EchoCharacter::MoveForward);
+}
+
+
 
 //void AMST_EchoCharacter::MoveForward(float Value)
 //{
@@ -126,25 +179,3 @@ void AMST_EchoCharacter::Sprint(const FInputActionValue& Value)
 //{
 //	AddControllerPitchInput(Value);
 //}
-
-void AMST_EchoCharacter::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-}
-
-// Called to bind functionality to input
-void AMST_EchoCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
-	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent)) {
-
-		EnhancedInputComponent->BindAction(MovementAction, ETriggerEvent::Triggered, this, &AMST_EchoCharacter::Move);
-		EnhancedInputComponent->BindAction(LookingAction, ETriggerEvent::Triggered, this, &AMST_EchoCharacter::Look);
-		// Bind Sprint Actions
-		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Started, this, &AMST_EchoCharacter::Sprint);
-		EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &AMST_EchoCharacter::Sprint);
-	}
-	//PlayerInputComponent->BindAxis(FName("MoveForward"), this, &AMST_EchoCharacter::MoveForward);
-}
-
