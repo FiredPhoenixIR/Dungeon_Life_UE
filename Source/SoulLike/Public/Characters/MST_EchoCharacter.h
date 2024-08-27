@@ -14,6 +14,21 @@ class UInputMappingContext;
 class UInputAction;
 struct FInputActionValue;
 
+USTRUCT()
+struct FSnapshot
+{
+	GENERATED_BODY()
+
+	FVector PlayerPosition;
+	FVector PlayerVelocity;
+	float TimeStamp;
+
+	FSnapshot() {}
+	FSnapshot(FVector Position, FVector Velocity, float Time)
+		: PlayerPosition(Position), PlayerVelocity(Velocity), TimeStamp(Time)
+	{}
+};
+
 
 UCLASS()
 class SOULLIKE_API AMST_EchoCharacter : public ACharacter
@@ -25,7 +40,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, ReplicatedUsing = OnRep_bIsSprinting)
 	bool bIsSprinting;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
@@ -80,8 +95,48 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Groom")
 	UGroomComponent* EyeBrows;
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, Replicated)
 	float WalkSpeed;
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, Replicated)
 	float SprintSpeed;
+
+
+
+private:
+	void RecordSnapshot();
+	FSnapshot FindClosestSnapshot(float TargetTime) const;
+	//Snapshots
+	TArray<FSnapshot> SnapshotHistory;
+	float SnapshotInterval = 0.05f; // Record a snapshot every 50ms
+	float MaxHistoryTime = 1.0f;    // Keep 1 second of history
+
+	// Variables for movement prediction
+	UPROPERTY(Replicated)
+	FVector ServerPosition;
+
+	UPROPERTY(Replicated)
+	FVector LastProcessedPosition;
+
+public:
+
+	// Replication
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+
+	// Network functions
+	UFUNCTION(Server, Unreliable)
+	void ServerMoveCustom(const FVector2D& MovementVector);
+
+	UFUNCTION(Server, Unreliable)
+	void ServerSprint(bool bSprinting);
+
+	UFUNCTION(Server, Unreliable)
+	void ServerSetSprintState(bool bShouldSprint);
+
+	// State replication
+	UFUNCTION()
+	void OnRep_ServerPosition();
+
+	UFUNCTION()
+	void OnRep_bIsSprinting();
 };

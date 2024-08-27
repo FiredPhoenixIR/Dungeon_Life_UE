@@ -20,6 +20,7 @@
 		DrawDebugPoint(GetWorld(), EndLocation, 15.f, FColor::Red, false, -1.f); \
 	}
 
+
 // Some Tests:
 //void AMST_Items::BeginPlay()
 //{
@@ -76,3 +77,155 @@
 //	DebugSphere_SingleFrame(GetActorLocation());
 //	DebugVector_SingleFrame(GetActorLocation(), GetActorLocation() + GetActorForwardVector() * 100);
 //}
+
+
+//Server Rewinding sample
+//void AMyWeapon::ServerFire_Implementation(APlayerController * PlayerController, FVector ShotOrigin, FVector ShotDirection)
+//{
+//    // Step 1: Calculate the client's ping from PlayerState
+//    float ClientPing = PlayerController->PlayerState->GetPing() * 0.001f; // Convert to seconds
+//
+//    // Step 2: Calculate the time when the shot was fired on the client
+//    float FireTime = GetWorld()->GetTimeSeconds() - ClientPing;
+//
+//    // Step 3: Find the closest snapshot corresponding to the time when the shot was fired
+//    AMyCharacter* TargetCharacter = Cast<AMyCharacter>(GetCharacter()); // Assuming this weapon is attached to a character
+//    FSnapshot* ClosestSnapshot = TargetCharacter ? TargetCharacter->FindClosestSnapshot(FireTime) : nullptr;
+//
+//    if (ClosestSnapshot)
+//    {
+//        // Step 4: Rewind the target character's position to the snapshot position
+//        FVector RewindedPosition = ClosestSnapshot->PlayerPosition;
+//
+//        // Step 5: Perform hit detection using the rewinded position
+//        bool bHitDetected = HitDetected(RewindedPosition, ShotOrigin, ShotDirection);
+//
+//        if (bHitDetected)
+//        {
+//            // Step 6: Apply damage or other effects
+//            UGameplayStatics::ApplyDamage(TargetCharacter, DamageAmount, PlayerController, this, UDamageType::StaticClass());
+//        }
+//    }
+//}
+//
+//bool AMyWeapon::HitDetected(FVector RewindedPosition, FVector ShotOrigin, FVector ShotDirection)
+//{
+//    FVector EndLocation = ShotOrigin + (ShotDirection * 10000.0f); // Long range for hit detection
+//    FHitResult HitResult;
+//
+//    // Perform a line trace (raycast) in the world to see if the shot hits the rewinded position
+//    bool bHit = GetWorld()->LineTraceSingleByChannel(
+//        HitResult,
+//        ShotOrigin,
+//        EndLocation,
+//        ECC_Visibility // Assuming visibility channel for hit detection
+//    );
+//
+//    if (bHit)
+//    {
+//        // If the hit result's location is close to the rewinded position, consider it a hit
+//        float HitDistance = FVector::Dist(HitResult.Location, RewindedPosition);
+//        if (HitDistance <= 50.0f) // 50 units tolerance
+//        {
+//            return true;
+//        }
+//    }
+//
+//    return false;
+//}
+
+
+//Ping Client from server
+// In your player controller class (e.g., AMyPlayerController)
+
+//UCLASS()
+//class YOURGAME_API AMyPlayerController : public APlayerController
+//{
+//    GENERATED_BODY()
+//
+//public:
+//    // This function will be called periodically by the server to ping the client
+//    UFUNCTION(Server, Reliable, WithValidation)
+//    void ServerSendPing(int32 PingID);
+//
+//    // This function will be called by the client to respond to the ping
+//    UFUNCTION(Client, Reliable)
+//    void ClientRespondPing(int32 PingID, float ServerTime);
+//
+//private:
+//    FTimerHandle PingTimerHandle;
+//    TMap<int32, float> PingMap; // Stores ping IDs and their send times
+//    int32 CurrentPingID;
+//private:
+//    float PingTimeout = 2.0f; // 2 seconds timeout for ping response
+//
+//    void HandlePingTimeout(int32 PingID);
+//
+//protected:
+//    virtual void BeginPlay() override;
+//
+//    // Function to initiate ping from server
+//    void SendPingToClient();
+//};
+//
+//void AMyPlayerController::BeginPlay()
+//{
+//    Super::BeginPlay();
+//
+//    // Start sending pings to the client every 2 seconds
+//    if (IsLocalController())
+//    {
+//        return;
+//    }
+//
+//    GetWorldTimerManager().SetTimer(PingTimerHandle, this, &AMyPlayerController::SendPingToClient, 2.0f, true);
+//}
+//
+//void AMyPlayerController::SendPingToClient()
+//{
+//    CurrentPingID++;
+//    float CurrentTime = GetWorld()->GetTimeSeconds();
+//    PingMap.Add(CurrentPingID, CurrentTime);
+//
+//    // Set a timeout to handle cases where the client is out of reach
+//    FTimerDelegate TimerDel;
+//    TimerDel.BindUFunction(this, FName("HandlePingTimeout"), CurrentPingID);
+//    GetWorld()->GetTimerManager().SetTimerForNextTick(TimerDel, PingTimeout);
+//
+//    ServerSendPing(CurrentPingID);
+//}
+//
+//void AMyPlayerController::ServerSendPing_Implementation(int32 PingID)
+//{
+//    // Send ping to the client with the current server time
+//    ClientRespondPing(PingID, GetWorld()->GetTimeSeconds());
+//}
+//
+//bool AMyPlayerController::ServerSendPing_Validate(int32 PingID)
+//{
+//    return true;
+//}
+//
+//void AMyPlayerController::ClientRespondPing_Implementation(int32 PingID, float ServerTime)
+//{
+//    if (IsLocalController())
+//    {
+//        return;
+//    }
+//
+//    // Send the ping response back to the server
+//    ServerSendPing(PingID);
+//}
+//void AMyPlayerController::HandlePingTimeout(int32 PingID)
+//{
+//    if (PingMap.Contains(PingID))
+//    {
+//        // The ping has not been responded to within the timeout period
+//        PingMap.Remove(PingID);
+//
+//        // Optionally log or take action, like marking the client as having network issues
+//        UE_LOG(LogTemp, Warning, TEXT("Ping %d timed out."), PingID);
+//    }
+//}
+//
+//// ping smooth float SmoothedPing = (PreviousSmoothedPing * 0.8f) + (CurrentPing * 0.2f);

@@ -11,7 +11,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
 #include "InputActionValue.h"
-
+#include "Net/UnrealNetwork.h"
 
 
 // Sets default values
@@ -19,8 +19,11 @@ AMST_EchoCharacter::AMST_EchoCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
+	bReplicates = true;
 	WalkSpeed = 300.f;
 	SprintSpeed = 600.f;
+	GetCharacterMovement()->MaxWalkSpeed = 300.f;
+	GetCharacterMovement()->SetIsReplicated(true);
 
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
@@ -65,16 +68,73 @@ void AMST_EchoCharacter::BeginPlay()
 void AMST_EchoCharacter::Move(const FInputActionValue& Value)
 {
 	//if (ActionState != EActionState::EAS_Unoccupied) return;
+
 	const FVector2D MovementVector = Value.Get<FVector2D>();
 
-	const FRotator ControlRotation = GetControlRotation();
-	const FRotator YawRotation(0.f, ControlRotation.Yaw, 0.f);
+	if (HasAuthority())
+	{
+		// Server-side movement processing
+		const FRotator ControlRotation = GetControlRotation();
+		const FRotator YawRotation(0.f, ControlRotation.Yaw, 0.f);
+		const FVector Forward = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+		const FVector Right = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+		AddMovementInput(Forward, MovementVector.Y);
+		AddMovementInput(Right, MovementVector.X);
 
-	const FVector Forward = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-	const FVector Right = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-	AddMovementInput(Forward, MovementVector.Y);
-	AddMovementInput(Right, MovementVector.X);
+		// Update authoritative position
+		ServerPosition = GetActorLocation();
+	}
+	else
+	{
+		// Predict movement locally on the client
+		const FRotator ControlRotation = GetControlRotation();
+		const FRotator YawRotation(0.f, ControlRotation.Yaw, 0.f);
+		const FVector Forward = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+		const FVector Right = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+		AddMovementInput(Forward, MovementVector.Y);
+		AddMovementInput(Right, MovementVector.X);
 
+		// Send input to server for validation
+		ServerMoveCustom(MovementVector);
+	}
+}
+
+void AMST_EchoCharacter::ServerMoveCustom_Implementation(const FVector2D& MovementVector)
+{
+	if (HasAuthority())
+	{
+		// Server-side validation and processing
+		const FRotator ControlRotation = GetControlRotation();
+		const FRotator YawRotation(0.f, ControlRotation.Yaw, 0.f);
+		const FVector Forward = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+		const FVector Right = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+		AddMovementInput(Forward, MovementVector.Y);
+		AddMovementInput(Right, MovementVector.X);
+
+		// Update authoritative position
+		ServerPosition = GetActorLocation();
+	}
+}
+
+void AMST_EchoCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	// Replicate ServerPosition if necessary
+	DOREPLIFETIME(AMST_EchoCharacter, ServerPosition);
+	DOREPLIFETIME(AMST_EchoCharacter, LastProcessedPosition);
+	DOREPLIFETIME(AMST_EchoCharacter, bIsSprinting);
+}
+
+void AMST_EchoCharacter::OnRep_ServerPosition()
+{
+	// Smoothly reconcile the client’s position with the server's position
+	FVector Delta = ServerPosition - GetActorLocation();
+	if (Delta.SizeSquared() > SMALL_NUMBER)
+	{
+		FVector NewLocation = FMath::VInterpTo(GetActorLocation(), ServerPosition, GetWorld()->GetDeltaSeconds(), 10.0f);
+		SetActorLocation(NewLocation);
+	}
 }
 
 void AMST_EchoCharacter::Look(const FInputActionValue& Value)
@@ -86,14 +146,52 @@ void AMST_EchoCharacter::Look(const FInputActionValue& Value)
 
 void AMST_EchoCharacter::Sprint(const FInputActionValue& Value)
 {
-	if (Value.Get<bool>()) {
+	// Ensure this logic runs only on the server
+	if (HasAuthority())
+	{
+		bool bShouldSprint = Value.Get<bool>();
+		if (bShouldSprint) {
+			GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
+			bIsSprinting = true;
+		}
+		else {
+			GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+			bIsSprinting = false;
+		}
+
+		// Notify clients
+		OnRep_bIsSprinting();
+	}
+	else
+	{
+		// If this is a client, call the server to set the sprint state
+		ServerSetSprintState(Value.Get<bool>());
+	}
+}
+
+void AMST_EchoCharacter::ServerSetSprintState_Implementation(bool bShouldSprint)
+{
+	Sprint(FInputActionValue(bShouldSprint));  // Call the Sprint function on the server
+}
+
+void AMST_EchoCharacter::OnRep_bIsSprinting()
+{
+	// Update the character movement based on the replicated sprinting state
+	GetCharacterMovement()->MaxWalkSpeed = bIsSprinting ? SprintSpeed : WalkSpeed;
+}
+
+void AMST_EchoCharacter::ServerSprint_Implementation(bool Sprinting)
+{
+	// Change MaxWalkSpeed on the server
+	if (Sprinting)
+	{
 		GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
-		bIsSprinting = true;
 	}
-	else {
+	else
+	{
 		GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
-		bIsSprinting = false;
 	}
+	bIsSprinting = Sprinting;
 }
 
 void AMST_EchoCharacter::Jump()
@@ -120,6 +218,52 @@ void AMST_EchoCharacter::EKeyPressed()
 void AMST_EchoCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+
+
+	if (SnapshotHistory.Num() > 0) // Ensure there's at least one element in the array
+	{
+		// Check if it's time to record a new snapshot
+		if (GetWorld()->GetTimeSeconds() - SnapshotHistory.Last().TimeStamp > SnapshotInterval)
+		{
+			RecordSnapshot();
+		}
+
+		// Remove old snapshots
+		while (SnapshotHistory.Num() > 0 && GetWorld()->GetTimeSeconds() - SnapshotHistory[0].TimeStamp > MaxHistoryTime)
+		{
+			SnapshotHistory.RemoveAt(0);
+		}
+	}
+}
+
+void AMST_EchoCharacter::RecordSnapshot()
+{
+	FVector CurrentPosition = GetActorLocation();
+	FVector CurrentVelocity = GetVelocity();
+	float CurrentTime = GetWorld()->GetTimeSeconds();
+
+	FSnapshot NewSnapshot(CurrentPosition, CurrentVelocity, CurrentTime);
+	SnapshotHistory.Add(NewSnapshot);
+}
+
+FSnapshot AMST_EchoCharacter::FindClosestSnapshot(float TargetTime) const
+{
+	FSnapshot ClosestSnapshot;
+	float ClosestTimeDiff = FLT_MAX; // Initialize with a large value
+
+	for (const FSnapshot& Snapshot : SnapshotHistory)
+	{
+		float TimeDiff = FMath::Abs(Snapshot.TimeStamp - TargetTime);
+		if (TimeDiff < ClosestTimeDiff)
+		{
+			ClosestTimeDiff = TimeDiff;
+			ClosestSnapshot = Snapshot;
+		}
+	}
+
+	// Return a default snapshot if none is found
+	return ClosestTimeDiff == FLT_MAX ? FSnapshot() : ClosestSnapshot;
 }
 
 // Called to bind functionality to input
