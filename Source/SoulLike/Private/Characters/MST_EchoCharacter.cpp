@@ -62,7 +62,6 @@ void AMST_EchoCharacter::BeginPlay()
 			Subsystem->AddMappingContext(EchoContext, 0);
 		}
 	}
-	
 }
 
 void AMST_EchoCharacter::Move(const FInputActionValue& Value)
